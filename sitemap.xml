@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
     <url>
+        <loc>https://datascienceonaws.com/xgboost/</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/jumpstart-builtin-xgboost-nyc-taxi.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/nyc-taxi-sparkml.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/sparkml-nyctaxi-pyspark-glue.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/xgboost-nyc-taxi-pandas.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/xgboost-nyc-taxi-small-pandas-parquet.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/xgboost-nyctaxi-pyspark.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/xgboost-nyctaxi-pyspark-glue.html</loc>
+    </url>
+    <url>
+        <loc>https://datascienceonaws.com/xgboost/xgboost-nyctaxi-ray-glue.html</loc>
+    </url>
+    <url>
         <loc>https://datascienceonaws.com/</loc>
     </url>
 </urlset>
