@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>xgboost-nyctaxi-pyspark-glue</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>xgboost-nyctaxi-pyspark</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14597,7 +14597,20 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Proposed-Solution-1:--SageMaker-+-Glue-Interactive-Sessions">Proposed Solution 1:  SageMaker + Glue Interactive Sessions<a class="anchor-link" href="#Proposed-Solution-1:--SageMaker-+-Glue-Interactive-Sessions">&#182;</a></h1>
+<h1 id="Local-PySpark-on-SageMaker-Studio">Local PySpark on SageMaker Studio<a class="anchor-link" href="#Local-PySpark-on-SageMaker-Studio">&#182;</a></h1><p>This notebook shows how to run local PySpark code within a SageMaker Studio notebook. For this example we use the <strong>Data Science - Python3</strong> image and kernel, but this methodology should work for any kernel within SM Studio, including BYO custom images.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Setup">Setup<a class="anchor-link" href="#Setup">&#182;</a></h2><p>We need an available Java installation to run pyspark. The easiest way to do this is to install JDK and set the proper paths using conda</p>
+
 </div>
 </div>
 </div>
@@ -14609,7 +14622,79 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="o">%</span><span class="n">stop_session</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Setup - Run only once per Kernel App</span>
+<span class="o">%</span><span class="k">conda</span> install openjdk -y
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Install-PySpark">Install PySpark<a class="anchor-link" href="#Install-PySpark">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">pip</span> install pyspark==3.3.1
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Utilize-S3-Data-within-local-PySpark">Utilize S3 Data within local PySpark<a class="anchor-link" href="#Utilize-S3-Data-within-local-PySpark">&#182;</a></h2><ul>
+<li>By specifying the <code>hadoop-aws</code> jar in our Spark config we're able to access S3 datasets using the s3a file prefix.</li>
+<li>Since we've already authenticated ourself to SageMaker Studio , we can use our assumed SageMaker ExecutionRole for any S3 reads/writes by setting the credential provider as <code>ContainerCredentialsProvider</code></li>
+</ul>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Import pyspark and build Spark session</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+
+<span class="n">spark</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;PySparkApp&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">&quot;spark.jars.packages&quot;</span><span class="p">,</span> <span class="s2">&quot;org.apache.hadoop:hadoop-aws:3.2.2&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span>
+        <span class="s2">&quot;fs.s3a.aws.credentials.provider&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;com.amazonaws.auth.ContainerCredentialsProvider&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">spark</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14625,9 +14710,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="o">%</span><span class="n">additional_python_modules</span> <span class="c1">#xgboost==1.7.1</span>
-<span class="c1">#%extra_jars spark-deep-learning-1.5.0-spark2.4-s_2.11.jar</span>
-<span class="o">%</span><span class="n">number_of_workers</span> <span class="mi">10</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span> \
+    <span class="o">.</span><span class="n">read</span> \
+    <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;recursiveFileLookup&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span> \
+    <span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">&quot;s3a://dsoaws/nyc-taxi/&quot;</span><span class="p">)</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14643,92 +14731,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># %help</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">df_ride_metadata</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;recursiveFileLookup&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">&quot;s3://dsoaws/nyc-taxi/ride-metadata/&quot;</span><span class="p">)</span>
-
-<span class="c1"># The following command caches the DataFrame in memory. This improves performance since subsequent calls to the DataFrame can read from memory instead of re-reading the data from disk.</span>
-<span class="c1">#df.cache()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># #df.repartition(1).write.option(&quot;overwrite&quot;, &quot;true&quot;).option(&quot;header&quot;, &quot;true&quot;).csv(&quot;s3://dsoaws/nyc-taxi-csv/&quot;)</span>
-<span class="c1"># df.repartition(1).write.option(&quot;overwrite&quot;, &quot;true&quot;).parquet(&quot;s3://dsoaws/nyc-taxi-single-parquet-all/&quot;)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The dataset has </span><span class="si">%d</span><span class="s2"> rows.&quot;</span> <span class="o">%</span> <span class="n">df</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The dataset has </span><span class="si">%d</span><span class="s2"> rows.&quot;</span> <span class="o">%</span> <span class="n">df</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
 </pre></div>
 
      </div>
@@ -14759,7 +14762,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># Data type string of column vendor_id is not supported.</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Data type string of column vendor_id is not supported.</span>
 <span class="c1"># Data type timestamp of column pickup_at is not supported.</span>
 <span class="c1"># Data type timestamp of column dropoff_at is not supported.</span>
 <span class="c1"># Data type string of column rate_code_id is not supported.</span>
@@ -14783,7 +14786,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14811,7 +14814,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># Split the dataset randomly into 70% for training and 30% for testing. Passing a seed for deterministic behavior</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Split the dataset randomly into 70% for training and 30% for testing. Passing a seed for deterministic behavior</span>
 <span class="n">train</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">([</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;There are </span><span class="si">%d</span><span class="s2"> training examples and </span><span class="si">%d</span><span class="s2"> test examples.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="n">test</span><span class="o">.</span><span class="n">count</span><span class="p">()))</span>
 </pre></div>
@@ -14843,7 +14846,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># train.select(&quot;passenger_count&quot;, &quot;total_amount&quot;).show()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">train</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;passenger_count&quot;</span><span class="p">,</span> <span class="s2">&quot;total_amount&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14895,7 +14898,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml.feature</span> <span class="kn">import</span> <span class="n">VectorAssembler</span><span class="p">,</span> <span class="n">VectorIndexer</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml.feature</span> <span class="kn">import</span> <span class="n">VectorAssembler</span><span class="p">,</span> <span class="n">VectorIndexer</span>
 
 <span class="c1"># Remove the target column from the input feature set.</span>
 <span class="n">featuresCols</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
@@ -14933,7 +14936,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">xgboost</span><span class="o">==</span><span class="mf">1.6.2</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>pip install <span class="nv">xgboost</span><span class="o">==</span><span class="m">1</span>.7.1
 </pre></div>
 
      </div>
@@ -14949,7 +14952,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">import</span> <span class="nn">xgboost</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">xgboost</span>
+
 <span class="nb">print</span><span class="p">(</span><span class="n">xgboost</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
 </pre></div>
 
@@ -14966,12 +14970,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">from</span> <span class="nn">xgboost.spark</span> <span class="kn">import</span> <span class="n">SparkXGBRegressor</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">xgboost.spark</span> <span class="kn">import</span> <span class="n">SparkXGBRegressor</span>
 
 <span class="c1"># The next step is to define the model training stage of the pipeline. </span>
 <span class="c1"># The following command defines a XgboostRegressor model that takes an input column &quot;features&quot; by default and learns to predict the labels in the &quot;cnt&quot; column.</span>
 <span class="c1"># Set `num_workers` to the number of spark tasks you want to concurrently run during training xgboost model.</span>
-<span class="n">xgb_regressor</span> <span class="o">=</span> <span class="n">SparkXGBRegressor</span><span class="p">(</span><span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;total_amount&quot;</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">xgb_regressor</span> <span class="o">=</span> <span class="n">SparkXGBRegressor</span><span class="p">(</span><span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;total_amount&quot;</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14999,15 +15003,15 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml.tuning</span> <span class="kn">import</span> <span class="n">CrossValidator</span><span class="p">,</span> <span class="n">ParamGridBuilder</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml.tuning</span> <span class="kn">import</span> <span class="n">CrossValidator</span><span class="p">,</span> <span class="n">ParamGridBuilder</span>
 <span class="kn">from</span> <span class="nn">pyspark.ml.evaluation</span> <span class="kn">import</span> <span class="n">RegressionEvaluator</span>
 
 <span class="c1"># Define a grid of hyperparameters to test:</span>
 <span class="c1">#  - maxDepth: maximum depth of each decision tree </span>
 <span class="c1">#  - maxIter: iterations, or the total number of trees </span>
-<span class="n">paramGrid</span> <span class="o">=</span> <span class="n">ParamGridBuilder</span><span class="p">()</span>\
-  <span class="o">.</span><span class="n">addGrid</span><span class="p">(</span><span class="n">xgb_regressor</span><span class="o">.</span><span class="n">max_depth</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>\
-  <span class="o">.</span><span class="n">addGrid</span><span class="p">(</span><span class="n">xgb_regressor</span><span class="o">.</span><span class="n">n_estimators</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>\
+<span class="n">paramGrid</span> <span class="o">=</span> <span class="n">ParamGridBuilder</span><span class="p">()</span> \
+  <span class="o">.</span><span class="n">addGrid</span><span class="p">(</span><span class="n">xgb_regressor</span><span class="o">.</span><span class="n">max_depth</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span> \
+  <span class="o">.</span><span class="n">addGrid</span><span class="p">(</span><span class="n">xgb_regressor</span><span class="o">.</span><span class="n">n_estimators</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span> \
   <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 
 <span class="c1"># Define an evaluation metric.  The CrossValidator compares the true labels with predicted values for each combination of parameters, and calculates this value to determine the best model.</span>
@@ -15044,24 +15048,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml</span> <span class="kn">import</span> <span class="n">Pipeline</span>
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="n">vectorAssembler</span><span class="p">,</span> <span class="n">vectorIndexer</span><span class="p">,</span> <span class="n">cv</span><span class="p">])</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml</span> <span class="kn">import</span> <span class="n">Pipeline</span>
 <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="n">vectorAssembler</span><span class="p">,</span> <span class="n">vectorIndexer</span><span class="p">,</span> <span class="n">cv</span><span class="p">])</span>
 </pre></div>
 
@@ -15093,7 +15080,7 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">pipelineModel</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">pipelineModel</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -15114,54 +15101,6 @@ This step takes several minutes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">predictions</span> <span class="o">=</span> <span class="n">pipelineModel</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">predictions</span> <span class="o">=</span> <span class="n">pipelineModel</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">predictions</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;total_amount&quot;</span><span class="p">,</span> <span class="s2">&quot;prediction&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">featuresCols</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
@@ -15174,6 +15113,38 @@ This step takes several minutes.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">predictions</span> <span class="o">=</span> <span class="n">pipelineModel</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">predictions</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;total_amount&quot;</span><span class="p">,</span> <span class="s2">&quot;prediction&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">featuresCols</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
@@ -15194,24 +15165,7 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">rmse</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RMSE on our test set: </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">rmse</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">rmse</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">rmse</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RMSE on our test set: </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">rmse</span><span class="p">)</span>
 </pre></div>
 
@@ -15240,7 +15194,7 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="n">predictions</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;passenger_count&quot;</span><span class="p">,</span> <span class="s2">&quot;prediction&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">predictions</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;passenger_count&quot;</span><span class="p">,</span> <span class="s2">&quot;prediction&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15267,10 +15221,9 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1">#%%sh</span>
-
-<span class="c1">#rm -rf /dbfs/tmp/xgboost/pipeline_001</span>
-<span class="c1">#rm -rf /dbfs/tmp/xgboost/pipelineModel_001</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">sh</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">rf</span> <span class="o">/</span><span class="n">dbfs</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">xgboost</span><span class="o">/</span><span class="n">pipeline_001</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">rf</span> <span class="o">/</span><span class="n">dbfs</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">xgboost</span><span class="o">/</span><span class="n">pipelineModel_001</span>
 </pre></div>
 
      </div>
@@ -15286,7 +15239,7 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># Save the pipeline that created the model</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Save the pipeline that created the model</span>
 <span class="n">pipeline</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;/tmp/xgboost/pipeline_001&#39;</span><span class="p">)</span>
 
 <span class="c1"># Save the model itself</span>
@@ -15306,7 +15259,7 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># Load the pipeline</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Load the pipeline</span>
 <span class="n">loaded_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;/tmp/xgboost/pipeline_001&#39;</span><span class="p">)</span>
 </pre></div>
 
@@ -15323,7 +15276,7 @@ This step takes several minutes.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-python3"><pre><span></span><span class="c1"># Load and use the model</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Load and use the model</span>
 <span class="kn">from</span> <span class="nn">pyspark.ml</span> <span class="kn">import</span> <span class="n">PipelineModel</span>
 
 <span class="n">loaded_pipelineModel</span> <span class="o">=</span> <span class="n">PipelineModel</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;/tmp/xgboost/pipelineModel_001&#39;</span><span class="p">)</span>
@@ -15334,6 +15287,22 @@ This step takes several minutes.</p>
 <span class="c1"># Make predictions with the loaded model</span>
 <span class="n">new_preds</span> <span class="o">=</span> <span class="n">loaded_pipelineModel</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
 <span class="n">display</span><span class="p">(</span><span class="n">new_preds</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;total_amount&quot;</span><span class="p">,</span> <span class="s2">&quot;prediction&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">featuresCols</span><span class="p">))</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
 </pre></div>
 
      </div>
