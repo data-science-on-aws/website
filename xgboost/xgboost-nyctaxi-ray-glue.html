@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>xgboost-nyctaxi-ray-glue</title>
+    <meta name="description" content="Data Science on AWS - O'Reilly Book - Early 2021">
+    <meta name="title" content="Data Science on AWS">
+    <meta name="keywords" content="Data Science, AWS, Amazon Web Services, SageMaker, TensorFlow, PyTorch, Kubeflow, Athena, Step Functions, Redshift, DynamoDB, QuickSight, Glue, EMR">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/sagemaker-logo-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/sagemaker-logo-32x32.png">
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Catamaran:100,200,300,400,500,600,700,800,900&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:100,100i,300,300i,400,400i,700,700i,900,900i&amp;display=swap">
+    <link rel="stylesheet" href="../assets/css/Features-Minimal-icons.css">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ECMNXM9Q6Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-ECMNXM9Q6Y');
+</script>
+
+<!-- Github Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- Full Story -->
+<script>
+window['_fs_debug'] = false;
+window['_fs_host'] = 'fullstory.com';
+window['_fs_script'] = 'edge.fullstory.com/s/fs.js';
+window['_fs_org'] = 'NWGC4';
+window['_fs_namespace'] = 'FS';
+(function(m,n,e,t,l,o,g,y){
+    if (e in m) {if(m.console && m.console.log) { m.console.log('FullStory namespace conflict. Please set window["_fs_namespace"].');} return;}
+    g=m[e]=function(a,b,s){g.q?g.q.push([a,b,s]):g._api(a,b,s);};g.q=[];
+    o=n.createElement(t);o.async=1;o.crossOrigin='anonymous';o.src='https://'+_fs_script;
+    y=n.getElementsByTagName(t)[0];y.parentNode.insertBefore(o,y);
+    g.identify=function(i,v,s){g(l,{uid:i},s);if(v)g(l,v,s)};g.setUserVars=function(v,s){g(l,v,s)};g.event=function(i,v,s){g('event',{n:i,p:v},s)};
+    g.anonymize=function(){g.identify(!!0)};
+    g.shutdown=function(){g("rec",!1)};g.restart=function(){g("rec",!0)};
+    g.log = function(a,b){g("log",[a,b])};
+    g.consent=function(a){g("consent",!arguments.length||a)};
+    g.identifyAccount=function(i,v){o='account';v=v||{};v.acctId=i;g(o,v)};
+    g.clearUserCookie=function(){};
+    g._w={};y='XMLHttpRequest';g._w[y]=m[y];y='fetch';g._w[y]=m[y];
+    if(m[y])m[y]=function(){return g._w[y].apply(this,arguments)};
+    g._v="1.2.0";
+})(window,document,window['_fs_namespace'],'script','user');
+</script>
+</head>
+
+<body><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="o">%</span><span class="n">stop_session</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="o">%</span><span class="n">glue_ray</span>
+<span class="o">%</span><span class="n">additional_python_modules</span> <span class="n">xgboost</span><span class="o">==</span><span class="mf">1.7.2</span><span class="p">,</span><span class="n">xgboost_ray</span>
+<span class="o">%</span><span class="n">min_workers</span> <span class="mi">25</span>
+<span class="o">%</span><span class="n">number_of_workers</span> <span class="mi">25</span>
+<span class="o">%</span><span class="n">object_memory_worker</span> <span class="mi">10</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="kn">import</span> <span class="nn">ray</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">([</span>
+<span class="c1">#    's3://dsoaws/nyc-taxi-orig-cleaned-split-parquet-all-years/', # fails with "disk full" error</span>
+    <span class="s1">'s3://dsoaws/nyc-taxi-orig-cleaned-parquet-all-years/'</span><span class="p">,</span> 
+    <span class="p">],</span> 
+<span class="c1">#    columns=columns,</span>
+<span class="c1">#    filter=(pa.field("total_amount") &gt;= 0.0) # this worked briefly, then stopped working for some reason</span>
+<span class="p">)</span>
+
+<span class="n">dataset</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="n">dataset</span><span class="o">.</span><span class="n">schema</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="c1"># import glob</span>
+<span class="c1"># from xgboost_ray import RayDMatrix, RayFileType</span>
+<span class="c1"># import ray</span>
+<span class="c1"># from ray.train.xgboost import XGBoostTrainer</span>
+<span class="c1"># from ray.air.config import ScalingConfig</span>
+<span class="c1"># from ray.air.config import RunConfig</span>
+
+<span class="c1"># # We can also pass a list of files</span>
+<span class="c1"># #path = list(sorted(glob.glob("/root/aws-samples-for-ray/glue/data.parquet")))</span>
+
+<span class="c1"># # This argument will be passed to `pd.read_parquet()`</span>
+<span class="c1"># columns = [</span>
+<span class="c1">#     "passenger_count",</span>
+<span class="c1">#     "trip_distance", </span>
+<span class="c1">#     # "pickup_longitude", # these are part of some years but not others</span>
+<span class="c1">#     # "pickup_latitude",</span>
+<span class="c1">#     # "dropoff_longitude", </span>
+<span class="c1">#     # "dropoff_latitude",</span>
+<span class="c1">#     "payment_type",</span>
+<span class="c1">#     "fare_amount", </span>
+<span class="c1">#     "extra", </span>
+<span class="c1">#     "mta_tax", </span>
+<span class="c1">#     "tip_amount",</span>
+<span class="c1">#     "tolls_amount", </span>
+<span class="c1">#     "total_amount"</span>
+<span class="c1"># ]</span>
+<span class="c1"># # .drop_columns(cols=["vendor_id", "pickup_at", "dropoff_at", "rate_code_id", "store_and_fwd_flag", "payment_type"]) \</span>
+
+<span class="c1"># # filter out any rows missing the total_amount column</span>
+<span class="c1"># # (the other option is to </span>
+<span class="c1"># #import pyarrow as pa</span>
+<span class="c1"># # filter_expr = (</span>
+<span class="c1"># #     (pa.dataset.field("total_amount") &gt;= 0.0)</span>
+<span class="c1"># # )</span>
+
+<span class="c1"># # ray.init(</span>
+<span class="c1"># #     _system_config={</span>
+<span class="c1"># #         "max_io_workers": 4,  # More IO workers for remote storage.</span>
+<span class="c1"># #         "min_spilling_size": 100 * 1024 * 1024,  # Spill at least 100MB at a time.</span>
+<span class="c1"># #         "object_spilling_config": json.dumps(</span>
+<span class="c1"># #             {</span>
+<span class="c1"># #               "type": "smart_open",</span>
+<span class="c1"># #               "params": {</span>
+<span class="c1"># #                 "uri": "s3://dsoaws/ray-glue-xgboost-nyc-taxi-spill"</span>
+<span class="c1"># #               },</span>
+<span class="c1"># #               "buffer_size": 100 * 1024 * 1024,  # Use a 100MB buffer for writes</span>
+<span class="c1"># #             },</span>
+<span class="c1"># #         )</span>
+<span class="c1"># #     },</span>
+<span class="c1"># # )</span>
+
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2019/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2018/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2017/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2016/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2015/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2014/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2013/")</span>
+<span class="c1"># # [SUCCEEDED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2012/")</span>
+
+<span class="c1"># # Note:  I removed [FAILED] directories from s3://dsoaws-databricks/...</span>
+
+<span class="c1"># # [FAILED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2011/")</span>
+<span class="c1"># # [FAILED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2010/")</span>
+<span class="c1"># # [FAILED] df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/2009/")</span>
+
+<span class="c1"># # df = spark.read.option("recursiveFileLookup", "true").parquet("s3://dsoaws-databricks/nyc-taxi/")</span>
+
+<span class="c1"># # dataset = ray.data.read_parquet([</span>
+<span class="c1"># #     's3://dsoaws/nyc-taxi/ride-metadata/year=2012/',</span>
+<span class="c1"># #     ], </span>
+<span class="c1"># #     columns=columns,</span>
+<span class="c1"># # #    filter=(pa.field("total_amount") &gt;= 0.0) # this worked briefly, then stopped working for some reason</span>
+<span class="c1"># # )</span>
+
+<span class="c1"># dataset.count()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="c1"># import pandas as pd</span>
+
+<span class="c1"># def map_fn(batch: pd.DataFrame) -&gt; pd.DataFrame:</span>
+<span class="c1">#     batch = batch[batch.total_amount.notnull()]</span>
+<span class="c1">#     return batch</span>
+
+<span class="c1"># dataset = dataset.map_batches(map_fn)</span>
+
+<span class="c1"># dataset.count()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">valid_dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">test_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Train dataset size is </span><span class="si">{</span><span class="n">train_dataset</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s1"> and Validation dataset size is </span><span class="si">{</span><span class="n">valid_dataset</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s1">.'</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="n">num_workers</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="c1"># train_dataset.repartition(num_workers)</span>
+<span class="c1"># valid_dataset.repartition(num_workers)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="kn">from</span> <span class="nn">xgboost_ray</span> <span class="kn">import</span> <span class="n">RayDMatrix</span><span class="p">,</span> <span class="n">RayFileType</span>
+<span class="kn">from</span> <span class="nn">ray.train.xgboost</span> <span class="kn">import</span> <span class="n">XGBoostTrainer</span>
+<span class="kn">from</span> <span class="nn">ray.air.config</span> <span class="kn">import</span> <span class="n">ScalingConfig</span>
+<span class="kn">from</span> <span class="nn">ray.air.config</span> <span class="kn">import</span> <span class="n">RunConfig</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">XGBoostTrainer</span><span class="p">(</span>
+    <span class="n">scaling_config</span><span class="o">=</span><span class="n">ScalingConfig</span><span class="p">(</span>
+        <span class="c1"># Number of workers to use for data parallelism.</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span> <span class="c1">#int(num_workers * 8 * 0.8),</span>
+        <span class="c1"># Whether to use GPU acceleration.</span>
+<span class="c1">#        trainer_resources={"CPU": 0},</span>
+        <span class="n">resources_per_worker</span><span class="o">=</span><span class="p">{</span><span class="s2">"CPU"</span><span class="p">:</span> <span class="mi">6</span><span class="p">},</span>
+        <span class="n">use_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># Leave enough CPU for I/O.  80% is a good choice. </span>
+        <span class="c1"># (Ray will warn you if you don't leave enough CPU for I/O.)</span>
+        <span class="n">_max_cpu_fraction_per_node</span> <span class="o">=</span> <span class="mf">0.8</span>
+    <span class="p">),</span>
+    <span class="n">run_config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">local_dir</span><span class="o">=</span><span class="s2">"/tmp/ray_results"</span><span class="p">),</span>
+    <span class="n">label_column</span><span class="o">=</span><span class="s1">'total_amount'</span><span class="p">,</span>
+    <span class="n">num_boost_round</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+        <span class="c1"># XGBoost specific params</span>
+        <span class="s2">"objective"</span><span class="p">:</span> <span class="s2">"reg:squarederror"</span><span class="p">,</span>
+        <span class="s2">"eval_metric"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"rmse"</span><span class="p">,</span> <span class="s2">"mae"</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="n">datasets</span><span class="o">=</span><span class="p">{</span><span class="s2">"train"</span><span class="p">:</span> <span class="n">train_dataset</span><span class="p">,</span> <span class="s2">"valid"</span><span class="p">:</span> <span class="n">valid_dataset</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'/tmp/ray_results/XGBoostTrainer_2023-01-09_21-11-06/XGBoostTrainer_21b7c_00000_0_2023-01-09_21-11-06/error.txt'</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-python3"><pre><span></span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+</body>
+
+</html>
