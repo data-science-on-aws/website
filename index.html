@@ -59,7 +59,6 @@ window['_fs_namespace'] = 'FS';
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item"><a class="nav-link" href="https://www.amazon.com/dp/1492079391/" target="_blank">Book</a></li>
-                    <li class="nav-item"><a class="nav-link" href="xgboost/index.html" target="_blank">XGBOOST</a></li>
                     <li class="nav-item"><a class="nav-link" href="https://www.eventbrite.com/e/full-day-workshop-kubeflow-gpu-kerastensorflow-20-tf-extended-tfx-kubernetes-pytorch-xgboost-tickets-63362929227" target="_blank">WorkshopS</a></li>
                     <li class="nav-item"><a class="nav-link" href="https://meetup.datascienceonaws.com" target="_blank">MEETUPS</a></li>
                     <li class="nav-item"><a class="nav-link" href="https://github.com/data-science-on-aws/" target="_blank">CODE</a></li>
@@ -73,7 +72,7 @@ window['_fs_namespace'] = 'FS';
             <div class="container">
                 <h1 class="masthead-heading mb-0">Data Science on AWS</h1>
                 <h2 class="masthead-subheading mb-0">O'Reilly Book Available Now!</h2>
-                <p class="text-center text-white py-5" style="padding: 0px 0px;"><a href="https://www.amazon.com/dp/1492079391/" target="_blank"><img class="img-fluid shadow-lg" src="assets/img/book_full_color.png" style="height: 800px;"><div>
+                <p class="text-center text-white py-5" style="padding: 0px 0px;"><a href="https://www.amazon.com/dp/1492079391/" target="_blank"><img class="img-fluid shadow-lg" src="assets/img/book_full_color.png" style="height: 800px;" height="400"><div>
     <a class="github-button" href="https://github.com/data-science-on-aws/workshop" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star data-science-on-aws/workshop on GitHub">Star</a>    
 </div></a>
                 <h2 class="masthead-subheading mb-0"><a href="https://www.amazon.com/dp/1492079391/" target="_blank"></a><a class="btn btn-primary text-center shadow-lg btn-xl rounded-pill mt-5" role="button" href="https://www.amazon.com/dp/1492079391/" target="_blank" style="margin: 24px;padding: 24px, 48px;">BOOK</a><a class="btn btn-primary text-center shadow-lg btn-xl rounded-pill mt-5" role="button" href="https://www.eventbrite.com/e/full-day-workshop-kubeflow-bert-gpu-tensorflow-keras-sagemaker-tickets-63362929227" target="_blank" style="margin: 24px;padding: 24px, 48px;">Workshops</a><a class="btn btn-primary text-center shadow-lg btn-xl rounded-pill mt-5" role="button" href="https://meetup.datascienceonaws.com" target="_blank" style="margin: 24px;padding: 24px, 48px;">MEETUPS</a><a class="btn btn-primary text-center shadow-lg btn-xl rounded-pill mt-5" role="button" href="https://github.com/data-science-on-aws/" target="_blank" style="margin: 24px;padding: 24px, 48px;">CODE<br></a><a class="btn btn-primary text-center shadow-lg btn-xl rounded-pill mt-5" role="button" href="https://youtube.datascienceonaws.com" target="_parent" style="margin: 24px;padding: 24px, 48px;">VIDEOS</a></h2>
@@ -88,10 +87,10 @@ window['_fs_namespace'] = 'FS';
             <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button btn btn-primary text-center btn-l rounded-pill" role="button">            
         </div>
     	<div id="mce-responses" class="clear">
-	    	<div class="response" id="mce-error-response" style="display:none"></div>
-		    <div class="response" id="mce-success-response" style="display:none"></div>
+	    	<div class="response" id="mce-error-response" style="display: none;"></div>
+		    <div class="response" id="mce-success-response" style="display: none;"></div>
 	    </div>    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
-    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0c529d39d4cbdf8bb98f68b5a_9c4d374418" tabindex="-1" value=""></div>
+    <div style="position: absolute;left: -5000px;" aria-hidden="true"><input type="text" name="b_0c529d39d4cbdf8bb98f68b5a_9c4d374418" tabindex="-1" value=""></div>
         </center>
     </div>
 </form>
@@ -192,6 +191,12 @@ window['_fs_namespace'] = 'FS';
                                 </tr>
                             </thead>
                             <tbody>
+                                <tr>
+                                    <td class="text-right" style="width: 200px;"></td>
+                                    <td><strong>Orchestrating a fine-tuning pipeline for generative large-language models using Amazon SageMaker</strong><br>In this talk, we build an end-to-end pipeline to fine-tune and deploy a generative large-language model (LLM) using Amazon SageMaker.&nbsp;The pipeline includes feature engineering, supervised-fine tuning (SFT), parameter-efficient fine-tuning (PEFT), model evaluation, and model deployment.&nbsp;We also discuss mechanisms to build a human-feedback workflow to further fine-tune and improve our model.&nbsp;We show how to incorporate the human feedback back into the fine-tuning pipeline with reinforcement learning (RLHF).&nbsp;<br><br><em>Generative AI and Machine Learning</em></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
                                 <tr>
                                     <td class="text-right" style="width: 200px;"></td>
                                     <td><strong>Scaling AI and machine learning workloads with Ray on AWS, Kubernetes, and BERT</strong><br>Open source Ray is great for modern high-performance data processing and machine learning workloads.&nbsp; In this talk, I will explain distributed Ray - and how it differs from Dask and Apache Spark.&nbsp; I will also discuss various tips and tricks to optimizing Ray on AWS and Kubernetes.&nbsp; Next, I will highlight some AWS key contributions to the open source Ray project to improve performance, scalability, and operational efficiency.&nbsp; Lastly, I conclude the talk with a demo using Ray's AI Runtime (AIR) to train and serve a large, distributed BERT model with Amazon Elastic Kubernetes Services (EKS).&nbsp; This talk is based on this blog post:&nbsp;&nbsp;https://aws.amazon.com/blogs/opensource/scaling-ai-and-machine-learning-workloads-with-ray-on-aws/<br>&nbsp;<br><em>AI and Machine Learning, Open Source, Data Engineering, and Feature Engineering</em><br></td>
@@ -363,10 +368,10 @@ window['_fs_namespace'] = 'FS';
             <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button btn btn-primary text-center btn-l rounded-pill" role="button">            
         </div>
     	<div id="mce-responses" class="clear">
-	    	<div class="response" id="mce-error-response" style="display:none"></div>
-		    <div class="response" id="mce-success-response" style="display:none"></div>
+	    	<div class="response" id="mce-error-response" style="display: none;"></div>
+		    <div class="response" id="mce-success-response" style="display: none;"></div>
 	    </div>    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
-        <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0c529d39d4cbdf8bb98f68b5a_9c4d374418" tabindex="-1" value=""></div>
+        <div style="position: absolute;left: -5000px;" aria-hidden="true"><input type="text" name="b_0c529d39d4cbdf8bb98f68b5a_9c4d374418" tabindex="-1" value=""></div>
             </center>
         </div>
     </form>
